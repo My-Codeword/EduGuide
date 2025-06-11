@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>EduRecommend - Smart Educational Guidance</title>
+        <script
+            src="https://unpkg.com/react@18/umd/react.development.js"></script>
+        <script
+            src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+        <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .form-section h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .interests-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .interest-checkbox {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .interest-checkbox:hover {
+            background: #e9ecef;
+        }
+
+        .interest-checkbox input {
+            margin-right: 8px;
+            width: auto;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .results-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .recommendation-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            transition: transform 0.3s;
+        }
+
+        .recommendation-card:hover {
+            transform: translateX(5px);
+        }
+
+        .recommendation-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .recommendation-card .score {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .interests-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    </head>
+    <body>
+        <div id="root"></div>
+
+        <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Mock data for demonstration
+        const mockData = {
+            exams: [
+                { id: 1, name: "JEE Main", type: "Engineering", difficulty: "High", fees: 1000 },
+                { id: 2, name: "NEET", type: "Medical", difficulty: "High", fees: 1600 },
+                { id: 3, name: "CAT", type: "Management", difficulty: "High", fees: 2300 },
+                { id: 4, name: "GATE", type: "Engineering", difficulty: "High", fees: 1700 },
+                { id: 5, name: "CLAT", type: "Law", difficulty: "Medium", fees: 4000 },
+                { id: 6, name: "UPSC CSE", type: "Civil Services", difficulty: "Very High", fees: 200 },
+                { id: 7, name: "SSC CGL", type: "Government", difficulty: "Medium", fees: 100 },
+                { id: 8, name: "BANK PO", type: "Banking", difficulty: "Medium", fees: 850 }
+            ],
+            universities: [
+                { id: 1, name: "IIT Delhi", type: "Engineering", ranking: 1, fees: 200000, location: "Delhi" },
+                { id: 2, name: "AIIMS Delhi", type: "Medical", ranking: 1, fees: 5000, location: "Delhi" },
+                { id: 3, name: "IIM Ahmedabad", type: "Management", ranking: 1, fees: 2300000, location: "Gujarat" },
+                { id: 4, name: "NLU Delhi", type: "Law", ranking: 1, fees: 150000, location: "Delhi" },
+                { id: 5, name: "BITS Pilani", type: "Engineering", ranking: 5, fees: 450000, location: "Rajasthan" },
+                { id: 6, name: "Manipal Academy", type: "Medical", ranking: 8, fees: 800000, location: "Karnataka" },
+                { id: 7, name: "Symbiosis Pune", type: "Management", ranking: 12, fees: 1200000, location: "Maharashtra" },
+                { id: 8, name: "Jamia Millia Islamia", type: "General", ranking: 15, fees: 50000, location: "Delhi" }
+            ],
+            coaching: [
+                { id: 1, name: "FIITJEE", type: "Engineering", rating: 4.5, fees: 180000, location: "Pan India" },
+                { id: 2, name: "Aakash Institute", type: "Medical", rating: 4.3, fees: 150000, location: "Pan India" },
+                { id: 3, name: "TIME", type: "Management", rating: 4.2, fees: 120000, location: "Pan India" },
+                { id: 4, name: "Vajiram & Ravi", type: "Civil Services", rating: 4.6, fees: 200000, location: "Delhi" },
+                { id: 5, name: "Allen Career Institute", type: "Medical", rating: 4.4, fees: 160000, location: "Rajasthan" },
+                { id: 6, name: "Resonance", type: "Engineering", rating: 4.3, fees: 170000, location: "Rajasthan" },
+                { id: 7, name: "ClearExam", type: "Government", rating: 4.1, fees: 80000, location: "Online" },
+                { id: 8, name: "LegalEdge", type: "Law", rating: 4.0, fees: 100000, location: "Delhi" }
+            ]
+        };
+
+        // Recommendation Engine
+        class RecommendationEngine {
+            static calculateScore(item, userProfile) {
+                let score = 0;
+                
+                // Academic performance weighting
+                const academicWeight = userProfile.academicScore / 100;
+                
+                // Interest matching
+                if (userProfile.interests.includes(item.type)) {
+                    score += 40;
+                }
+                
+                // Financial compatibility
+                const affordability = userProfile.budget / (item.fees || 1);
+                score += Math.min(affordability * 20, 30);
+                
+                // Academic score alignment
+                score += academicWeight * 30;
+                
+                return Math.min(score, 100);
+            }
+            
+            static getRecommendations(data, userProfile, limit = 5) {
+                return data
+                    .map(item => ({
+                        ...item,
+                        score: this.calculateScore(item, userProfile)
+                    }))
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, limit);
+            }
+        }
+
+        function App() {
+            const [formData, setFormData] = useState({
+                name: '',
+                academicScore: '',
+                interests: [],
+                budget: '',
+                location: ''
+            });
+            
+            const [recommendations, setRecommendations] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [activeTab, setActiveTab] = useState('exams');
+
+            const interestOptions = [
+                'Engineering', 'Medical', 'Management', 'Law', 
+                'Civil Services', 'Government', 'Banking', 'General'
+            ];
+
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                setFormData(prev => ({
+                    ...prev,
+                    [name]: value
+                }));
+            };
+
+            const handleInterestChange = (interest) => {
+                setFormData(prev => ({
+                    ...prev,
+                    interests: prev.interests.includes(interest)
+                        ? prev.interests.filter(i => i !== interest)
+                        : [...prev.interests, interest]
+                }));
+            };
+
+            const generateRecommendations = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                
+                // Simulate API call
+                setTimeout(() => {
+                    const userProfile = {
+                        ...formData,
+                        academicScore: parseInt(formData.academicScore),
+                        budget: parseInt(formData.budget)
+                    };
+                    
+                    const examRecommendations = RecommendationEngine.getRecommendations(
+                        mockData.exams, userProfile
+                    );
+                    
+                    const universityRecommendations = RecommendationEngine.getRecommendations(
+                        mockData.universities, userProfile
+                    );
+                    
+                    const coachingRecommendations = RecommendationEngine.getRecommendations(
+                        mockData.coaching, userProfile
+                    );
+                    
+                    setRecommendations({
+                        exams: examRecommendations,
+                        universities: universityRecommendations,
+                        coaching: coachingRecommendations
+                    });
+                    
+                    setLoading(false);
+                }, 2000);
+            };
+
+            const renderRecommendationCard = (item, type) => {
+                const getDetailText = () => {
+                    switch(type) {
+                        case 'exams':
+                            return `Difficulty: ${item.difficulty} | Fee: ₹${item.fees?.toLocaleString()}`;
+                        case 'universities':
+                            return `Ranking: #${item.ranking} | Fee: ₹${item.fees?.toLocaleString()} | Location: ${item.location}`;
+                        case 'coaching':
+                            return `Rating: ${item.rating}/5 | Fee: ₹${item.fees?.toLocaleString()} | Location: ${item.location}`;
+                        default:
+                            return '';
+                    }
+                };
+
+                return (
+                    <div key={item.id} className="recommendation-card">
+                        <div className="score">Match Score: {Math.round(item.score)}%</div>
+                        <h3>{item.name}</h3>
+                        <p><strong>Type:</strong> {item.type}</p>
+                        <p>{getDetailText()}</p>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>EduRecommend</h1>
+                        <p>Your AI-Powered Educational Guidance System</p>
+                    </div>
+                    
+                    <div className="main-content">
+                        <div className="form-section">
+                            <h2>Student Profile</h2>
+                            <form onSubmit={generateRecommendations}>
+                                <div className="form-group">
+                                    <label>Full Name</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label>Academic Score (%)</label>
+                                    <input
+                                        type="number"
+                                        name="academicScore"
+                                        value={formData.academicScore}
+                                        onChange={handleInputChange}
+                                        min="0"
+                                        max="100"
+                                        required
+                                    />
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label>Budget (₹ per year)</label>
+                                    <input
+                                        type="number"
+                                        name="budget"
+                                        value={formData.budget}
+                                        onChange={handleInputChange}
+                                        required
+                                    />
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label>Preferred Location</label>
+                                    <select
+                                        name="location"
+                                        value={formData.location}
+                                        onChange={handleInputChange}
+                                        required
+                                    >
+                                        <option value="">Select Location</option>
+                                        <option value="Delhi">Delhi</option>
+                                        <option value="Mumbai">Mumbai</option>
+                                        <option value="Bangalore">Bangalore</option>
+                                        <option value="Chennai">Chennai</option>
+                                        <option value="Pune">Pune</option>
+                                        <option value="Hyderabad">Hyderabad</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+                                
+                                <div className="form-group">
+                                    <label>Areas of Interest</label>
+                                    <div className="interests-grid">
+                                        {interestOptions.map(interest => (
+                                            <div key={interest} className="interest-checkbox">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.interests.includes(interest)}
+                                                    onChange={() => handleInterestChange(interest)}
+                                                />
+                                                <label>{interest}</label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" className="submit-btn">
+                                    Get Recommendations
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div className="results-section">
+                            <h2>Personalized Recommendations</h2>
+                            
+                            {loading && (
+                                <div className="loading">
+                                    <div className="spinner"></div>
+                                    <p>Analyzing your profile and generating recommendations...</p>
+                                </div>
+                            )}
+                            
+                            {recommendations && !loading && (
+                                <>
+                                    <div className="tabs">
+                                        <div 
+                                            className={`tab ${activeTab === 'exams' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('exams')}
+                                        >
+                                            Entrance Exams
+                                        </div>
+                                        <div 
+                                            className={`tab ${activeTab === 'universities' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('universities')}
+                                        >
+                                            Universities
+                                        </div>
+                                        <div 
+                                            className={`tab ${activeTab === 'coaching' ? 'active' : ''}`}
+                                            onClick={() => setActiveTab('coaching')}
+                                        >
+                                            Coaching
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="recommendations-content">
+                                        {activeTab === 'exams' && recommendations.exams.map(exam => 
+                                            renderRecommendationCard(exam, 'exams')
+                                        )}
+                                        {activeTab === 'universities' && recommendations.universities.map(uni => 
+                                            renderRecommendationCard(uni, 'universities')
+                                        )}
+                                        {activeTab === 'coaching' && recommendations.coaching.map(coach => 
+                                            renderRecommendationCard(coach, 'coaching')
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                            
+                            {!recommendations && !loading && (
+                                <div style={{textAlign: 'center', padding: '40px', color: '#666'}}>
+                                    <p>Fill out your profile to get personalized recommendations</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+    </body>
+</html>
